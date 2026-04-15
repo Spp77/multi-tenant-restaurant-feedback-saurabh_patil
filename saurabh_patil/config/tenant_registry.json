@@ -1,0 +1,37 @@
+{
+  "tenants": [
+    {
+      "tenant_id": "pizza-palace-123",
+      "restaurant_name": "Pizza Palace",
+      "api_key": "pk_pizza_abc123",
+      "plan": "premium",
+      "features": {
+        "sentiment_analysis": true,
+        "advanced_insights": true
+      },
+      "created_at": "2026-01-15T00:00:00Z"
+    },
+    {
+      "tenant_id": "burger-barn-456",
+      "restaurant_name": "Burger Barn",
+      "api_key": "pk_burger_def456",
+      "plan": "basic",
+      "features": {
+        "sentiment_analysis": false,
+        "advanced_insights": false
+      },
+      "created_at": "2026-01-20T00:00:00Z"
+    },
+    {
+      "tenant_id": "sushi-spot-789",
+      "restaurant_name": "Sushi Spot",
+      "api_key": "pk_sushi_ghi789",
+      "plan": "premium",
+      "features": {
+        "sentiment_analysis": true,
+        "advanced_insights": false
+      },
+      "created_at": "2026-02-01T00:00:00Z"
+    }
+  ]
+}

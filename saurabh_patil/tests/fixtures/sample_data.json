@@ -1,0 +1,52 @@
+{
+  "tenants": [
+    {
+      "tenant_id": "pizza-palace-123",
+      "restaurant_name": "Pizza Palace",
+      "plan": "premium"
+    },
+    {
+      "tenant_id": "burger-barn-456",
+      "restaurant_name": "Burger Barn",
+      "plan": "basic"
+    }
+  ],
+  "feedback_records": [
+    {
+      "feedback_id": "fb-001",
+      "tenant_id": "pizza-palace-123",
+      "comment": "The pizza was amazing and delicious!",
+      "rating": 5,
+      "sentiment_label": "positive",
+      "sentiment_score": 0.95,
+      "created_at": "2026-04-01T10:00:00+00:00"
+    },
+    {
+      "feedback_id": "fb-002",
+      "tenant_id": "pizza-palace-123",
+      "comment": "Terrible service, never coming back.",
+      "rating": 1,
+      "sentiment_label": "negative",
+      "sentiment_score": -0.95,
+      "created_at": "2026-04-02T11:00:00+00:00"
+    },
+    {
+      "feedback_id": "fb-003",
+      "tenant_id": "pizza-palace-123",
+      "comment": "It was okay, nothing special.",
+      "rating": 3,
+      "sentiment_label": "neutral",
+      "sentiment_score": 0.0,
+      "created_at": "2026-04-03T12:00:00+00:00"
+    },
+    {
+      "feedback_id": "fb-004",
+      "tenant_id": "burger-barn-456",
+      "comment": "Good burger and fries.",
+      "rating": 4,
+      "sentiment_label": null,
+      "sentiment_score": null,
+      "created_at": "2026-04-01T09:00:00+00:00"
+    }
+  ]
+}
