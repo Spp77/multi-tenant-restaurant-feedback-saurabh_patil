@@ -1,58 +1,59 @@
-"""
-src/models/tenant.py
-Pydantic model representing a registered tenant (restaurant).
-Loaded once at startup from config/tenant_registry.json.
-"""
 from pydantic import BaseModel, Field, field_validator
-from typing import Dict, Optional
+from typing import Optional
 from datetime import datetime, timezone
+
+VALID_PLANS = ("basic", "premium")
 
 
 class TenantFeatures(BaseModel):
     """Feature flags that control which plan capabilities are unlocked."""
     sentiment_analysis: bool = False
-    advanced_insights: bool = False
+    advanced_insights:  bool = False
 
 
 class Tenant(BaseModel):
     """
-    Represents one registered restaurant tenant.
+    Registered restaurant tenant.
 
-    tenant_id        → Partition Key in DynamoDB; must be globally unique.
-    plan             → "basic" | "premium" — drives feature gate checks.
-    features         → Nested flags derived from the plan at registration time.
+    ``tenant_id`` is the Partition Key in DynamoDB — must be globally unique.
+    ``plan`` drives all feature gate checks via the ``features`` flags.
     """
-    tenant_id: str
+    tenant_id:       str
     restaurant_name: str
-    api_key: str
-    plan: str
-    features: TenantFeatures = Field(default_factory=TenantFeatures)
-    created_at: Optional[str] = Field(
+    api_key:         str
+    plan:            str
+    features:        TenantFeatures = Field(default_factory=TenantFeatures)
+    created_at:      Optional[str]  = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
 
     @field_validator("plan")
     @classmethod
     def validate_plan(cls, v: str) -> str:
-        if v not in ("basic", "premium"):
-            raise ValueError("Plan must be 'basic' or 'premium'")
+        if v not in VALID_PLANS:
+            raise ValueError(f"Plan must be one of {VALID_PLANS}")
         return v
 
-    # ── Convenience helpers ────────────────────────────────────────────────
-
     def can_use(self, feature: str) -> bool:
-        """Returns True if this tenant has the given feature enabled."""
+        """Return True if this tenant's plan includes ``feature``."""
         return getattr(self.features, feature, False)
 
     def is_premium(self) -> bool:
+        """Return True if tenant is on the premium plan."""
         return self.plan == "premium"
 
     def to_dict(self) -> dict:
+        """Return a plain dict suitable for storage or JSON serialisation."""
         return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Tenant":
-        """Factory — converts a raw JSON registry entry into a Tenant."""
+        """
+        Factory — converts a raw JSON registry entry into a Tenant.
+
+        Handles the case where ``features`` arrives as a plain dict
+        rather than a ``TenantFeatures`` instance.
+        """
         entry = dict(data)
         if isinstance(entry.get("features"), dict):
             entry["features"] = TenantFeatures(**entry["features"])
