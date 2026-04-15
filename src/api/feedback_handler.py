@@ -7,16 +7,59 @@ logger = get_logger(__name__)
 
 
 class FeedbackHandler:
+    """
+    Orchestrates the full feedback submission pipeline for a given tenant.
+
+    Designed to be HTTP-agnostic — returns plain dicts so the same instance
+    can be driven from a FastAPI route, a CLI script, or a background task
+    without coupling to any transport layer.
+    """
+
     def __init__(self, db_client, sentiment_svc):
+        """
+        Args:
+            db_client:      DynamoDBClient (or any compatible mock) for persistence.
+            sentiment_svc:  SentimentService (or mock) for text analysis.
+        """
         self.db = db_client
         self.sentiment_svc = sentiment_svc
 
-    async def process_feedback(self, feedback: Feedback, tenant_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_feedback(
+        self, feedback: Feedback, tenant_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
-        Orchestrates: Validation → Feature Gate → Sentiment API → Storage
+        Run the full pipeline: Validation → Feature Gate → Sentiment API → Storage.
 
-        Sentiment errors are swallowed intentionally — a failed analysis should
-        never block persisting the customer's review.
+        Sentiment failures are intentionally swallowed — an enrichment outage must
+        never block persisting the customer's review. Failed records are marked
+        ``sentiment_label="analysis_skipped"`` for later back-fill.
+
+        Args:
+            feedback:     Populated Feedback model. ``tenant_id`` will be overwritten
+                          by ``tenant_data["tenant_id"]`` to prevent spoofing.
+            tenant_data:  Dict loaded from the tenant registry, containing at minimum
+                          ``tenant_id``, ``restaurant_name``, and ``features``.
+
+        Returns:
+            On success::
+
+                {
+                    "status": "success",
+                    "feedback_id": "<uuid>",
+                    "tenant_name": "<str>",
+                    "sentiment_applied": "<label | None>"
+                }
+
+            On validation failure::
+
+                {"error": "Comment cannot be empty", "code": 400}
+
+            On unexpected failure::
+
+                {"error": "Internal Server Error", "code": 500}
+
+        Raises:
+            Does not raise — all exceptions are caught and returned as error dicts.
         """
         logger.info(f"Processing feedback for tenant: {tenant_data.get('tenant_id')}")
 

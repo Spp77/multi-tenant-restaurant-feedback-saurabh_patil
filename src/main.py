@@ -13,21 +13,32 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+# Insights tuning constants
+TOP_COMPLAINTS_LIMIT  = 5
+MIN_WORD_LENGTH       = 4
+NEGATIVE_RATING_FLOOR = 2   # reviews at or below this rating feed the complaints list
+STOP_WORDS: frozenset = frozenset({
+    "the", "was", "and", "this", "that", "with", "have", "for", "are"
+})
+
+REGISTRY_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "config", "tenant_registry.json"
+)
+
 app = FastAPI(
     title="Multi-Tenant Restaurant Review API",
     description="Collect and analyse customer feedback per restaurant tenant.",
     version="1.0.0",
 )
 
-db_client = DynamoDBClient()
-s3_client = S3Client()
+db_client    = DynamoDBClient()
+s3_client    = S3Client()
 sentiment_svc = SentimentService()
-handler = FeedbackHandler(db_client, sentiment_svc)
-
-REGISTRY_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "tenant_registry.json")
+handler      = FeedbackHandler(db_client, sentiment_svc)
 
 
-def load_tenants() -> dict:
+def load_tenants() -> dict[str, Tenant]:
+    """Load and index tenant registry from JSON config at startup."""
     with open(REGISTRY_PATH) as f:
         data = json.load(f)
     return {t["tenant_id"]: Tenant.from_dict(t) for t in data["tenants"]}
@@ -37,6 +48,7 @@ TENANT_DB: dict[str, Tenant] = load_tenants()
 
 
 def get_current_tenant(x_tenant_id: str = Header(...)) -> Tenant:
+    """FastAPI dependency — resolves and validates tenant from X-Tenant-ID header."""
     tenant = TENANT_DB.get(x_tenant_id)
     if not tenant:
         logger.warning(f"Access attempt from unknown tenant: {x_tenant_id}")
@@ -49,6 +61,7 @@ async def create_feedback(
     feedback: Feedback,
     tenant: Tenant = Depends(get_current_tenant),
 ):
+    """Submit customer feedback. Runs: Validation → Feature Gate → Sentiment → Storage."""
     tenant_data = tenant.model_dump()
     tenant_data["features"] = tenant.features.model_dump()
 
@@ -85,11 +98,11 @@ async def get_insights(
             "top_complaints": [],
         }
 
-    total = len(records)
+    total     = len(records)
     avg_rating = round(sum(r["rating"] for r in records) / total, 2)
 
     breakdown = {"positive": 0, "negative": 0, "neutral": 0}
-    scores = []
+    scores: list[float] = []
     for r in records:
         label = r.get("sentiment_label")
         if label in breakdown:
@@ -99,14 +112,13 @@ async def get_insights(
 
     avg_score = round(sum(scores) / len(scores), 4) if scores else None
 
-    # Naive word-frequency over 1-2 star reviews — good enough for this tier
-    stop = {"the", "was", "and", "this", "that", "with", "have", "for", "are"}
+    # Naive word-frequency over low-rated reviews — good enough for this tier
     negative_words = [
-        w for r in records if r.get("rating", 5) <= 2
+        w for r in records if r.get("rating", 5) <= NEGATIVE_RATING_FLOOR
         for w in r.get("comment", "").lower().split()
-        if len(w) > 4 and w not in stop
+        if len(w) > MIN_WORD_LENGTH and w not in STOP_WORDS
     ]
-    top_complaints = [w for w, _ in Counter(negative_words).most_common(5)]
+    top_complaints = [w for w, _ in Counter(negative_words).most_common(TOP_COMPLAINTS_LIMIT)]
 
     logger.info("Insights generated", extra={"tenant_id": tenant_id, "total": total})
 
