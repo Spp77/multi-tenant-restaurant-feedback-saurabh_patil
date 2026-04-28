@@ -60,6 +60,10 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache/
+
+
 # Logs
 *.log
 logs/
