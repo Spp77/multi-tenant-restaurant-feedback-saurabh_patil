@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![CI](https://github.com/Spp77/multi-tenant-restaurant-feedback/actions/workflows/test.yml/badge.svg)](https://github.com/Spp77/multi-tenant-restaurant-feedback/actions/workflows/test.yml)
+[![CI](https://github.com/Spp77/multi-tenant-restaurant-feedback-saurabh_patil/actions/workflows/test.yml/badge.svg)](https://github.com/Spp77/multi-tenant-restaurant-feedback-saurabh_patil/actions/workflows/test.yml)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Tests](https://img.shields.io/badge/tests-149%20passed-brightgreen)](./tests)
@@ -193,8 +193,8 @@ No AWS account, no API keys, no Docker — the entire stack runs on mocked in-me
 ### 1 — Clone & navigate
 
 ```bash
-git clone https://github.com/Spp77/multi-tenant-restaurant-feedback.git
-cd multi-tenant-restaurant-feedback/saurabh_patil
+git clone https://github.com/Spp77/multi-tenant-restaurant-feedback-saurabh_patil.git
+cd multi-tenant-restaurant-feedback-saurabh_patil
 ```
 
 ---
@@ -547,5 +547,5 @@ Codecov upload             ← coverage.xml → badge + PR annotation
 ---
 
 <div align="center">
-  <sub>Built by Saurabh Patil · Jivaha Backend Engineering Exercise · 2026</sub>
+  <sub>Built by Saurabh Patil · Jivaha Backend Engineering Exercise · 2026 · <a href="https://github.com/Spp77/multi-tenant-restaurant-feedback-saurabh_patil">github.com/Spp77/multi-tenant-restaurant-feedback-saurabh_patil</a></sub>
 </div>
