@@ -176,24 +176,151 @@ Every endpoint declares `response_model=` — not raw `dict`. Benefits:
 
 ## Getting Started
 
+> **Reviewer note:** this submission lives inside the `saurabh_patil/` subfolder of the shared fork. All commands below assume you have `cd`'d into that folder.
+
+### Prerequisites
+
+| Tool | Version | Check |
+|------|---------|-------|
+| Python | 3.11 + | `python --version` |
+| pip | latest | `pip --version` |
+| git | any | `git --version` |
+
+No AWS account, no API keys, no Docker — the entire stack runs on mocked in-memory services.
+
+---
+
+### 1 — Clone & navigate
+
 ```bash
-# 1. Create and activate a virtual environment
+git clone https://github.com/Spp77/multi-tenant-restaurant-feedback.git
+cd multi-tenant-restaurant-feedback/saurabh_patil
+```
+
+---
+
+### 2 — Create a virtual environment
+
+```bash
+# Create
 python -m venv venv
-.\venv\Scripts\Activate.ps1      # Windows PowerShell
-# source venv/bin/activate       # Mac/Linux
 
-# 2. Install dependencies
+# Activate — pick your shell:
+.\venv\Scripts\Activate.ps1          # Windows PowerShell  ← recommended
+.\venv\Scripts\activate.bat          # Windows CMD
+source venv/bin/activate             # Mac / Linux / Git Bash
+```
+
+Your prompt will show `(venv)` when active.
+
+---
+
+### 3 — Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# 3. Run the server
+This installs:
+- `fastapi` + `uvicorn` — web framework and ASGI server
+- `pydantic v2` — data validation
+- `pytest`, `pytest-asyncio`, `pytest-cov`, `pytest-rerunfailures` — test stack
+- `httpx` — async HTTP client used by FastAPI's TestClient
+- `ruff` — linter (same tool used in CI)
+
+---
+
+### 4 — Run the test suite
+
+```bash
+# Windows PowerShell
+$env:PYTHONPATH = "."; pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Mac / Linux / Git Bash
+PYTHONPATH=. pytest tests/ -v --cov=src --cov-report=term-missing
+```
+
+Expected output:
+
+```
+149 passed in ~1.5s
+TOTAL  96% coverage
+```
+
+> **Why `PYTHONPATH=.`?** Python needs to find `src.*` imports from the project root. The CI pipeline sets this automatically via `env: PYTHONPATH: .`.
+
+---
+
+### 5 — Start the development server
+
+```bash
 uvicorn src.main:app --reload
 ```
 
 | URL | What you get |
 |-----|-------------|
-| `http://127.0.0.1:8000/` | API discovery (name, version, health, docs links) |
-| `http://127.0.0.1:8000/docs` | Interactive Swagger UI |
+| `http://127.0.0.1:8000/` | API discovery — name, version, links |
+| `http://127.0.0.1:8000/docs` | Interactive Swagger UI (try endpoints live) |
+| `http://127.0.0.1:8000/redoc` | ReDoc API reference |
 | `http://127.0.0.1:8000/health` | Liveness check |
+
+---
+
+### 6 — Smoke-test the live server
+
+**PowerShell (Windows):**
+```powershell
+.\scripts\test_api.ps1
+```
+
+**Bash (Mac/Linux/Git Bash):**
+```bash
+bash scripts/test_api.sh
+```
+
+Both scripts hit every endpoint and print colour-coded ✓ PASS / ✗ FAIL output.
+
+Or use curl directly:
+
+```bash
+# Submit feedback (premium tenant)
+curl -s -X POST http://localhost:8000/api/feedback \
+  -H "Content-Type: application/json" \
+  -H "x-tenant-id: pizza-palace-123" \
+  -d '{"tenant_id":"pizza-palace-123","rating":5,"comment":"Amazing pizza!"}' \
+  | python -m json.tool
+
+# Get insights
+curl -s http://localhost:8000/api/restaurants/pizza-palace-123/insights \
+  -H "x-tenant-id: pizza-palace-123" \
+  | python -m json.tool
+```
+
+---
+
+### 7 — Run the linter (same check as CI)
+
+```bash
+ruff check src/ tests/
+# Expected: All checks passed!
+```
+
+---
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `ModuleNotFoundError: No module named 'src'` | Set `PYTHONPATH=.` before pytest |
+| `command not found: uvicorn` | Run `pip install -r requirements.txt` inside venv |
+| `(venv)` not showing in prompt | Activate the venv — see Step 2 |
+| Port 8000 already in use | `uvicorn src.main:app --reload --port 8001` |
+| `test_mixed_case_okay` occasionally fails | Expected — it's a 1% chaos-monkey simulation, marked `@pytest.mark.flaky(reruns=2)` |
+
+---
+
+Interactive Swagger docs: **http://127.0.0.1:8000/docs**
+API discovery endpoint: **http://127.0.0.1:8000/**
 
 ---
 
