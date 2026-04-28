@@ -4,7 +4,6 @@ Covers JsonFormatter output shape and get_logger() behaviour.
 """
 import json
 import logging
-import pytest
 from src.utils.logger import get_logger, JsonFormatter
 
 

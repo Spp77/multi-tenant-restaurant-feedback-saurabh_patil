@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, Any
 from src.models.feedback import Feedback
 from src.utils.logger import get_logger

@@ -5,7 +5,7 @@ All external dependencies (DynamoDBClient, SentimentService) are either real
 mock implementations or replaced via monkeypatch/unittest.mock.
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 from src.api.feedback_handler import FeedbackHandler
 from src.storage.dynamodb_client import DynamoDBClient
@@ -62,7 +62,7 @@ class TestPremiumPlanFlow:
         handler = FeedbackHandler(real_db, real_svc)
         fb = Feedback(comment="Delicious crust!", rating=5, tenant_id="pizza-palace-123")
 
-        result = await handler.process_feedback(fb, premium_tenant)
+        _ = await handler.process_feedback(fb, premium_tenant)
 
         stored = real_db.get_item("pizza-palace-123", fb.feedback_id)
         assert stored is not None

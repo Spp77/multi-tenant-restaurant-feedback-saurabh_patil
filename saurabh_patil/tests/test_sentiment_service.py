@@ -79,7 +79,13 @@ class TestNeutralSentiment:
         assert score == 0.0
 
     @pytest.mark.asyncio
+    @pytest.mark.flaky(reruns=2)
     async def test_mixed_case_okay(self, svc):
+        """
+        Intentional flake: the 1% chaos-monkey in SentimentService can fire here.
+        ``reruns=2`` gives it two more attempts before marking it a real failure.
+        See README.md for context on the chaos-monkey design decision.
+        """
         label, score = await svc.analyze_text("OKAY, nothing special.")
         assert label == "neutral"
         assert score == 0.0

@@ -2,7 +2,6 @@
 Unit Tests: S3Client (tests/test_s3_client.py)
 Coverage target: 90%+
 """
-import json
 import pytest
 from src.storage.s3_client import S3Client
 from src.utils.exceptions import StorageError

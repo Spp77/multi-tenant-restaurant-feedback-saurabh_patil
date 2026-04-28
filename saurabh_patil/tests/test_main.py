@@ -2,12 +2,11 @@
 Integration Tests: FastAPI routes (tests/test_main.py)
 Uses httpx AsyncClient to test the full HTTP layer — brings main.py coverage to 90%+.
 """
-import json
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
-from src.main import app, db_client
+from src.main import app
 
 
 # ── Helper ─────────────────────────────────────────────────────────────────────
